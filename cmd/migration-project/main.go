@@ -5,7 +5,10 @@ import (
 	"log"
 	"os"
 
+	"github.com/shuufujita/backlog-tools/usecase"
+
 	"github.com/shuufujita/backlog-tools/common"
+	"github.com/shuufujita/backlog-tools/infrastructure/persistance"
 )
 
 func init() {
@@ -17,6 +20,14 @@ func init() {
 }
 
 func main() {
-	log.Println(fmt.Sprintf("execute migration project."))
+	backlogProjectRepository := persistance.NewBacklogProjectPersistance()
+	backlogProjectUsecase := usecase.NewBacklogProjectUseCase(backlogProjectRepository)
+	log.Println(fmt.Sprintf("%v: [%v] %v", "info", "migrate-project", "execute"))
+	err := backlogProjectUsecase.MigrateProject()
+	if err != nil {
+		log.Println(fmt.Sprintf("%v: [%v] %v", "error", "migrate-project", err.Error()))
+		os.Exit(1)
+	}
+	log.Println(fmt.Sprintf("%v: [%v] %v", "info", "migrate-project", "complete"))
 	os.Exit(0)
 }
