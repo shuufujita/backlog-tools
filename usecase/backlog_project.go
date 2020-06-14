@@ -9,25 +9,55 @@ import (
 
 // BacklogProjectUseCase backlog project usecase
 type BacklogProjectUseCase interface {
-	MigrateProject() error
+	LoadProject() error
 }
 
-type backlogProjectUseCase struct {
-	repository repository.BacklogProjectRepository
+type backlogUseCase struct {
+	repository          repository.BacklogRepository
+	migrationRepository repository.BacklogMigrationRepository
 }
 
-// NewBacklogProjectUseCase return backlog project usecase instance
-func NewBacklogProjectUseCase(bpr repository.BacklogProjectRepository) BacklogProjectUseCase {
-	return &backlogProjectUseCase{
-		repository: bpr,
+// NewBacklogUseCase return backlog usecase instance
+func NewBacklogUseCase(br repository.BacklogRepository, bmr repository.BacklogMigrationRepository) BacklogProjectUseCase {
+	return &backlogUseCase{
+		repository:          br,
+		migrationRepository: bmr,
 	}
 }
 
-func (bpu backlogProjectUseCase) MigrateProject() error {
-	issues, err := bpu.repository.GetIssueType()
+func (bu backlogUseCase) LoadProject() error {
+	project, err := bu.repository.GetProject()
 	if err != nil {
 		return err
 	}
-	log.Println(fmt.Sprintf("issues : %v", issues))
+	log.Println(fmt.Sprintf("project : %v", project))
+
+	err = bu.migrationRepository.SaveProject(project)
+	if err != nil {
+		return err
+	}
+
+	projectUsers, err := bu.repository.GetProjectUsers()
+	if err != nil {
+		return err
+	}
+	log.Println(fmt.Sprintf("project_users : %v", projectUsers))
+
+	err = bu.migrationRepository.SaveProjectUsers(projectUsers, project.ID)
+	if err != nil {
+		return err
+	}
+
+	issueTypes, err := bu.repository.GetIssueType()
+	if err != nil {
+		return err
+	}
+	log.Println(fmt.Sprintf("issue_types : %v", issueTypes))
+
+	err = bu.migrationRepository.SaveIssueType(issueTypes)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

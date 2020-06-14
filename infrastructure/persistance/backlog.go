@@ -12,26 +12,59 @@ import (
 	"github.com/shuufujita/backlog-tools/domain/repository"
 )
 
-type backlogProjectPersistance struct{}
+type backlogPersistance struct{}
 
-// NewBacklogProjectPersistance backlog project persistance
-func NewBacklogProjectPersistance() repository.BacklogProjectRepository {
-	return &backlogProjectPersistance{}
+// NewBacklogPersistance backlog persistance
+func NewBacklogPersistance() repository.BacklogRepository {
+	return &backlogPersistance{}
 }
 
-func (bpp backlogProjectPersistance) GetIssueType() ([]model.BacklogIssueType, error) {
+func (bpp backlogPersistance) GetProject() (model.BacklogProject, error) {
+	projectKeyOrID := os.Getenv("BACKLOG_PROJECT_KEY")
+	body, err := backlogGetRequest("/api/v2/projects/" + projectKeyOrID)
+	if err != nil {
+		return model.BacklogProject{}, err
+	}
+
+	project := model.BacklogProject{}
+	err = json.Unmarshal(body, &project)
+	if err != nil {
+		return model.BacklogProject{}, err
+	}
+
+	return project, nil
+}
+
+func (bpp backlogPersistance) GetIssueType() ([]model.BacklogIssueType, error) {
 	projectKeyOrID := os.Getenv("BACKLOG_PROJECT_KEY")
 	body, err := backlogGetRequest("/api/v2/projects/" + projectKeyOrID + "/issueTypes")
 	if err != nil {
 		return nil, err
 	}
 
-	issues := []model.BacklogIssueType{}
-	err = json.Unmarshal(body, &issues)
+	issueTypes := []model.BacklogIssueType{}
+	err = json.Unmarshal(body, &issueTypes)
 	if err != nil {
 		return nil, err
 	}
-	return issues, nil
+
+	return issueTypes, nil
+}
+
+func (bpp backlogPersistance) GetProjectUsers() ([]model.BacklogProjectUser, error) {
+	projectKeyOrID := os.Getenv("BACKLOG_PROJECT_KEY")
+	body, err := backlogGetRequest("/api/v2/projects/" + projectKeyOrID + "/users")
+	if err != nil {
+		return nil, err
+	}
+
+	projectUsers := []model.BacklogProjectUser{}
+	err = json.Unmarshal(body, &projectUsers)
+	if err != nil {
+		return nil, err
+	}
+
+	return projectUsers, nil
 }
 
 func backlogGetRequest(path string) ([]byte, error) {
