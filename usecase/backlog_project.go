@@ -59,5 +59,49 @@ func (bu backlogUseCase) LoadProject() error {
 		return err
 	}
 
+	categories, err := bu.repository.GetCategory()
+	if err != nil {
+		return err
+	}
+	log.Println(fmt.Sprintf("categories : %v", categories))
+
+	err = bu.migrationRepository.SaveCategory(categories, project.ID)
+	if err != nil {
+		return err
+	}
+
+	versions, err := bu.repository.GetVersion()
+	if err != nil {
+		return err
+	}
+	log.Println(fmt.Sprintf("versions : %v", versions))
+
+	err = bu.migrationRepository.SaveVersion(versions)
+	if err != nil {
+		return err
+	}
+
+	resolutions, err := bu.repository.GetResolution()
+	if err != nil {
+		return err
+	}
+	log.Println(fmt.Sprintf("resolutions : %v", resolutions))
+
+	err = bu.migrationRepository.SaveResolutions(resolutions, project.ID)
+	if err != nil {
+		return err
+	}
+
+	priorities, err := bu.repository.GetPriority()
+	if err != nil {
+		return err
+	}
+	log.Println(fmt.Sprintf("priorities : %v", priorities))
+
+	err = bu.migrationRepository.SavePriorities(priorities, project.ID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

@@ -14,7 +14,7 @@ var once sync.Once
 
 // MySQLInit MySQL initialization
 func MySQLInit() error {
-	connectionParams := os.Getenv("MYSQL_USER") + ":" + os.Getenv("MYSQL_PASSWORD") + "@tcp(" + os.Getenv("MYSQL_HOST") + ":" + os.Getenv("MYSQL_PORT") + ")/" + os.Getenv("MYSQL_DBNAME")
+	connectionParams := os.Getenv("MYSQL_USER") + ":" + os.Getenv("MYSQL_PASSWORD") + "@tcp(" + os.Getenv("MYSQL_HOST") + ":" + os.Getenv("MYSQL_PORT") + ")/" + os.Getenv("MYSQL_DBNAME") + "?parseTime=true"
 	db, err := sql.Open("mysql", connectionParams)
 	if err != nil {
 		log.Println(fmt.Sprintf("%v: [%v] %v", "error", "MySQLInit", err.Error()))
@@ -35,4 +35,21 @@ func CloseMySQL() error {
 		return dbCon.Close()
 	}
 	return nil
+}
+
+// NewNullTime return null time
+func NewNullTime(str string, format string) sql.NullTime {
+	if len(str) == 0 {
+		return sql.NullTime{}
+	}
+
+	date, err := time.Parse(format, str)
+	if err != nil {
+		return sql.NullTime{}
+	}
+
+	return sql.NullTime{
+		Time:  date,
+		Valid: true,
+	}
 }

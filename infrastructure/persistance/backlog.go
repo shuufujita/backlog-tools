@@ -19,9 +19,86 @@ func NewBacklogPersistance() repository.BacklogRepository {
 	return &backlogPersistance{}
 }
 
+func (bpp backlogPersistance) GetIssue() ([]model.BacklogIssue, error) {
+	body, err := backlogGetRequest("/api/v2/issues", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	issues := []model.BacklogIssue{}
+	err = json.Unmarshal(body, &issues)
+	if err != nil {
+		return nil, err
+	}
+
+	return issues, nil
+}
+
+func (bpp backlogPersistance) GetResolution() ([]model.BacklogResolution, error) {
+	body, err := backlogGetRequest("/api/v2/resolutions", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resolutions := []model.BacklogResolution{}
+	err = json.Unmarshal(body, &resolutions)
+	if err != nil {
+		return nil, err
+	}
+
+	return resolutions, nil
+}
+
+func (bpp backlogPersistance) GetPriority() ([]model.BacklogPriority, error) {
+	body, err := backlogGetRequest("/api/v2/priorities", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	priorities := []model.BacklogPriority{}
+	err = json.Unmarshal(body, &priorities)
+	if err != nil {
+		return nil, err
+	}
+
+	return priorities, nil
+}
+
+func (bpp backlogPersistance) GetVersion() ([]model.BacklogVersion, error) {
+	projectKeyOrID := os.Getenv("BACKLOG_PROJECT_KEY")
+	body, err := backlogGetRequest("/api/v2/projects/"+projectKeyOrID+"/versions", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	versions := []model.BacklogVersion{}
+	err = json.Unmarshal(body, &versions)
+	if err != nil {
+		return nil, err
+	}
+
+	return versions, nil
+}
+
+func (bpp backlogPersistance) GetCategory() ([]model.BacklogCategory, error) {
+	projectKeyOrID := os.Getenv("BACKLOG_PROJECT_KEY")
+	body, err := backlogGetRequest("/api/v2/projects/"+projectKeyOrID+"/categories", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	categories := []model.BacklogCategory{}
+	err = json.Unmarshal(body, &categories)
+	if err != nil {
+		return nil, err
+	}
+
+	return categories, nil
+}
+
 func (bpp backlogPersistance) GetProject() (model.BacklogProject, error) {
 	projectKeyOrID := os.Getenv("BACKLOG_PROJECT_KEY")
-	body, err := backlogGetRequest("/api/v2/projects/" + projectKeyOrID)
+	body, err := backlogGetRequest("/api/v2/projects/"+projectKeyOrID, nil)
 	if err != nil {
 		return model.BacklogProject{}, err
 	}
@@ -37,7 +114,7 @@ func (bpp backlogPersistance) GetProject() (model.BacklogProject, error) {
 
 func (bpp backlogPersistance) GetIssueType() ([]model.BacklogIssueType, error) {
 	projectKeyOrID := os.Getenv("BACKLOG_PROJECT_KEY")
-	body, err := backlogGetRequest("/api/v2/projects/" + projectKeyOrID + "/issueTypes")
+	body, err := backlogGetRequest("/api/v2/projects/"+projectKeyOrID+"/issueTypes", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +130,7 @@ func (bpp backlogPersistance) GetIssueType() ([]model.BacklogIssueType, error) {
 
 func (bpp backlogPersistance) GetProjectUsers() ([]model.BacklogProjectUser, error) {
 	projectKeyOrID := os.Getenv("BACKLOG_PROJECT_KEY")
-	body, err := backlogGetRequest("/api/v2/projects/" + projectKeyOrID + "/users")
+	body, err := backlogGetRequest("/api/v2/projects/"+projectKeyOrID+"/users", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +144,7 @@ func (bpp backlogPersistance) GetProjectUsers() ([]model.BacklogProjectUser, err
 	return projectUsers, nil
 }
 
-func backlogGetRequest(path string) ([]byte, error) {
+func backlogGetRequest(path string, queryParam map[string]string) ([]byte, error) {
 	requestURL := os.Getenv("BACKLOG_BASE_URL") + path
 
 	req, err := http.NewRequest("GET", requestURL, nil)
